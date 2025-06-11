@@ -1,0 +1,45 @@
+{
+  "project": "Aplicativo de Denúncias Ambientais",
+  "version": "1.0.0",
+  "rules": {
+    "authentication": {
+      "anonymous": true,
+      "identified": {
+        "required": ["name", "email"]
+      }
+    },
+    "reports": {
+      "maxImages": 2,
+      "allowedFormats": [".jpg", ".png"],
+      "maxFileSize": "5MB",
+      "compressionEnabled": true
+    },
+    "location": {
+      "gpsAutoCapture": true,
+      "manualLocationAllowed": true,
+      "requiredFields": ["coordinates"]
+    },
+    "categories": [
+      "Queimada",
+      "Mato Alto",
+      "Despejo de lixo",
+      "Desmatamento",
+      "Maus-tratos a animais",
+      "Poluição sonora",
+      "Outros"
+    ],
+    "timestamps": {
+      "autoCapture": true,
+      "manualOverrideAllowed": true
+    },
+    "map": {
+      "provider": "OpenStreetMap",
+      "filters": ["date", "category", "status"]
+    },
+    "admin": {
+      "reportFormats": ["CSV", "PDF"],
+      "visualReports": true,
+      "emailNotifications": true
+    }
+  }
+}

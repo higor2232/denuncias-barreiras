@@ -13,7 +13,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import type { Report } from '@/types';
+import type { Report, ReportStatus } from '@/types';
 
 // Dynamically import the map component to ensure it's client-side only
 const AdminLeafletMap = dynamic(() => import('@/components/admin/AdminLeafletMap'), {
@@ -54,20 +54,19 @@ const AdminMapPage: React.FC = () => {
     }
   }, [currentUser, fetchReports]);
 
-  const handleUpdateStatus = async (reportId: string, newStatus: string) => {
-    console.log(`Updating status for report ${reportId} to ${newStatus}`);
+  const handleUpdateStatus = async (reportId: string, newStatus: ReportStatus) => {
     try {
       const reportRef = doc(db, 'denuncias', reportId);
       await updateDoc(reportRef, { status: newStatus });
 
       setReports(prevReports =>
-        prevReports.map(r => r.id === reportId ? { ...r, status: newStatus } : r)
+        prevReports.map(r =>
+          r.id === reportId ? ({ ...r, status: newStatus } as Report) : r
+        )
       );
-      alert('Status atualizado com sucesso!');
-      // The AdminLeafletMap component can handle closing its own popups if needed
     } catch (err) {
       console.error("Error updating status: ", err);
-      alert('Falha ao atualizar status.');
+      // Mensagem de erro já é logada no console; o AdminDashboard exibe feedback visual na UI
     }
   };
 

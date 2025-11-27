@@ -1,36 +1,44 @@
 # Aplicativo de Denúncias Ambientais
 
-![Status do Projeto](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)
+![Status do Projeto](https://img.shields.io/badge/Status-Funcional-green)
 ![Versão](https://img.shields.io/badge/Versão-1.0.0-blue)
+![Next.js](https://img.shields.io/badge/Next.js-15.3-black)
+![Firebase](https://img.shields.io/badge/Firebase-Firestore%20%7C%20Storage-orange)
 
 ## 📋 Sobre o Projeto
 
-O Aplicativo de Denúncias Ambientais é uma plataforma web que permite aos cidadãos reportar problemas ambientais em sua cidade, como queimadas, desmatamento, despejo irregular de lixo, entre outros. O sistema permite denúncias anônimas ou identificadas e apresenta os dados em um mapa interativo.
+Plataforma web cidadã para registro de denúncias ambientais. Permite que cidadãos reportem problemas como queimadas, desmatamento, despejo irregular de lixo, entre outros. O sistema aceita denúncias anônimas ou identificadas e apresenta os dados em um mapa interativo.
 
-## 🌟 Funcionalidades
+## 🌟 Funcionalidades Implementadas
 
-- **Denúncias Anônimas**: Opção de registrar denúncias sem identificação ou fornecendo nome/email
-- **Localização Automática**: Captura de coordenadas GPS ou inserção manual
-- **Upload de Fotos**: Anexar até 2 imagens da ocorrência
-- **Categorização**: Seleção do tipo de problema ambiental
-- **Registro de Data/Hora**: Captura automática com opção de edição manual
-- **Mapa Interativo**: Visualização georreferenciada das denúncias
-- **Relatórios Administrativos**: Geração de relatórios em CSV/PDF e visualizações gráficas
+- ✅ **Denúncias Anônimas/Identificadas**: Escolha entre registro anônimo ou com nome/email
+- ✅ **Localização GPS**: Captura automática de coordenadas ou inserção manual
+- ✅ **Upload de Fotos**: Até 2 imagens com compressão automática (máx. 5MB cada)
+- ✅ **Captura de Câmera**: Tire fotos diretamente pelo navegador
+- ✅ **Categorização Dinâmica**: Categorias gerenciadas via Firestore
+- ✅ **Registro de Data/Hora**: Automático ou manual
+- ✅ **Mapa Interativo**: Visualização com Leaflet/OpenStreetMap
+- ✅ **Painel Administrativo**: Dashboard com filtros, paginação e exportação
+- ✅ **Relatórios**: Exportação em CSV e PDF com filtros
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Stack Tecnológica
 
-- **Frontend**: React.js com Next.js
-- **Backend**: Node.js com Express
-- **Banco de Dados**: MongoDB
-- **Armazenamento de Imagens**: Firebase Storage
-- **Mapas**: Leaflet com OpenStreetMap
+| Camada | Tecnologia |
+|--------|------------|
+| **Frontend** | Next.js 15.3 + React 19 + TypeScript |
+| **Estilização** | TailwindCSS 4 |
+| **Banco de Dados** | Firebase Firestore |
+| **Armazenamento** | Firebase Storage |
+| **Autenticação** | Firebase Auth |
+| **Mapas** | Leaflet + OpenStreetMap |
+| **PDF** | @react-pdf/renderer |
 
 ## 🚀 Instalação e Uso
 
 ### Pré-requisitos
-- Node.js (v14+)
+- Node.js (v18+)
 - npm ou yarn
-- MongoDB
+- Projeto Firebase configurado
 
 ### Instalação
 
@@ -40,82 +48,96 @@ git clone https://github.com/seu-usuario/app-denuncias-ambientais.git
 cd app-denuncias-ambientais
 ```
 
-2. Instale as dependências do frontend
+2. Instale as dependências
 ```bash
-cd client
+cd frontend
 npm install
 ```
 
-3. Instale as dependências do backend
+3. Configure o Firebase
+   - Crie um projeto no [Firebase Console](https://console.firebase.google.com)
+   - Ative Firestore, Storage e Authentication
+   - Copie as credenciais para `src/firebase/config.ts`
+
+4. Inicie o servidor de desenvolvimento
 ```bash
-cd ../server
-npm install
-```
-
-4. Configure as variáveis de ambiente
-   - Crie um arquivo `.env` na pasta `server` baseado no `.env.example`
-   - Crie um arquivo `.env.local` na pasta `client` baseado no `.env.example`
-
-5. Inicie o servidor de desenvolvimento
-```bash
-# No diretório server
-npm run dev
-
-# Em outro terminal, no diretório client
 npm run dev
 ```
 
-## 📊 Status de Implementação
-
-| Feature | Status |
-|---------|--------|
-| Configuração Inicial | ✅ Em andamento |
-| Denúncias Anônimas | ⏳ Pendente |
-| Localização Automática | ⏳ Pendente |
-| Upload de Fotos | ⏳ Pendente |
-| Categorias de Denúncia | ⏳ Pendente |
-| Mapa Interativo | ⏳ Pendente |
-| Relatórios Administrativos | ⏳ Pendente |
+5. Acesse `http://localhost:3000`
 
 ## 📁 Estrutura do Projeto
 
 ```
 projeto-denuncias-ambientais/
-├── client/                      # Frontend React
-│   ├── public/                  # Arquivos estáticos
+├── frontend/                    # Aplicação Next.js
 │   ├── src/
-│   │   ├── components/          # Componentes reutilizáveis
-│   │   ├── pages/               # Páginas da aplicação
-│   │   ├── contexts/            # Contextos React
-│   │   ├── services/            # Serviços de API
-│   │   └── utils/               # Funções utilitárias
+│   │   ├── app/                 # Rotas (App Router)
+│   │   │   ├── page.tsx         # Página inicial
+│   │   │   ├── denunciar/       # Formulário de denúncia
+│   │   │   ├── mapa/            # Mapa público
+│   │   │   └── admin/           # Painel administrativo
+│   │   ├── components/          # Componentes React
+│   │   │   ├── Header.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   ├── ReportForm.tsx
+│   │   │   ├── ReportMap.tsx
+│   │   │   └── admin/           # Componentes do admin
+│   │   ├── contexts/            # Contextos (Auth)
+│   │   ├── firebase/            # Configuração Firebase
+│   │   └── types/               # Interfaces TypeScript
 │   └── package.json
 │
-├── server/                      # Backend Node.js
-│   ├── controllers/             # Controladores de rotas
-│   ├── models/                  # Modelos do banco de dados
-│   ├── routes/                  # Definição de rotas da API
-│   ├── middleware/              # Middlewares
-│   ├── services/                # Serviços (email, storage, etc)
-│   ├── config/                  # Configurações
-│   └── package.json
-│
-├── windsurfrules.json           # Regras do projeto
-├── project_memory.md            # Memória do projeto
-├── tasks.json                   # Tarefas de desenvolvimento
-└── README.md                    # Documentação do projeto
+├── firestore.rules              # Regras do Firestore
+├── storage.rules                # Regras do Storage
+└── README.md
 ```
 
-## 🔄 Atualizações
+## 🗄️ Estrutura do Banco de Dados
 
-### Versão 1.0.0 (11/06/2025)
-- Configuração inicial do projeto
-- Definição da arquitetura
-- Criação de arquivos de configuração e documentação
+### Collection: `denuncias`
+```typescript
+{
+  reportType: 'anonymous' | 'identified',
+  name?: string,
+  email?: string,
+  description: string,
+  category: string,
+  location: { latitude: number, longitude: number },
+  imageUrls: string[],
+  status: 'pendente' | 'em_analise' | 'resolvido',
+  createdAt: Timestamp
+}
+```
+
+### Collection: `report_categories`
+```typescript
+{
+  name: string
+}
+```
+
+## 📊 Rotas da Aplicação
+
+| Rota | Descrição |
+|------|-----------|
+| `/` | Página inicial |
+| `/denunciar` | Formulário de denúncia |
+| `/mapa` | Mapa público de denúncias |
+| `/admin` | Dashboard administrativo |
+| `/admin/login` | Login do admin |
+| `/admin/mapa` | Mapa administrativo |
+
+## 🔒 Segurança
+
+As regras do Firestore e Storage estão configuradas para:
+- Permitir leitura pública de denúncias e categorias
+- Permitir criação de denúncias sem autenticação
+- Restringir operações administrativas a usuários autenticados
 
 ## 📝 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Este projeto está sob a licença MIT.
 
 ## 👥 Contribuição
 

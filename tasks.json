@@ -1,186 +1,89 @@
 {
   "project": "Aplicativo de Denúncias Ambientais",
-  "lastUpdated": "2025-06-11",
+  "lastUpdated": "2025-11-27",
   "tasks": [
     {
       "id": 1,
       "title": "Configuração inicial do projeto",
-      "status": "em_andamento",
+      "status": "concluído",
       "priority": "alta",
       "subtasks": [
-        {
-          "id": 1.1,
-          "title": "Criar estrutura de diretórios",
-          "status": "pendente"
-        },
-        {
-          "id": 1.2,
-          "title": "Configurar ambiente de desenvolvimento",
-          "status": "pendente"
-        },
-        {
-          "id": 1.3,
-          "title": "Inicializar repositório Git",
-          "status": "pendente"
-        }
+        { "id": 1.1, "title": "Criar estrutura de diretórios", "status": "concluído" },
+        { "id": 1.2, "title": "Configurar Next.js + TailwindCSS", "status": "concluído" },
+        { "id": 1.3, "title": "Configurar Firebase", "status": "concluído" }
       ]
     },
     {
       "id": 2,
       "title": "Implementação do Frontend",
-      "status": "pendente",
+      "status": "concluído",
       "priority": "alta",
       "subtasks": [
-        {
-          "id": 2.1,
-          "title": "Configurar React/Next.js",
-          "status": "pendente"
-        },
-        {
-          "id": 2.2,
-          "title": "Criar componentes base",
-          "status": "pendente"
-        },
-        {
-          "id": 2.3,
-          "title": "Implementar formulário de denúncia",
-          "status": "pendente"
-        },
-        {
-          "id": 2.4,
-          "title": "Implementar visualização de mapa",
-          "status": "pendente"
-        }
+        { "id": 2.1, "title": "Página inicial", "status": "concluído" },
+        { "id": 2.2, "title": "Header e Footer", "status": "concluído" },
+        { "id": 2.3, "title": "Formulário de denúncia", "status": "concluído" },
+        { "id": 2.4, "title": "Visualização de mapa", "status": "concluído" }
       ]
     },
     {
       "id": 3,
-      "title": "Implementação do Backend",
-      "status": "pendente",
+      "title": "Integração Firebase",
+      "status": "concluído",
       "priority": "alta",
       "subtasks": [
-        {
-          "id": 3.1,
-          "title": "Configurar Node.js/Express",
-          "status": "pendente"
-        },
-        {
-          "id": 3.2,
-          "title": "Configurar MongoDB",
-          "status": "pendente"
-        },
-        {
-          "id": 3.3,
-          "title": "Implementar APIs de denúncia",
-          "status": "pendente"
-        },
-        {
-          "id": 3.4,
-          "title": "Configurar armazenamento de imagens",
-          "status": "pendente"
-        }
+        { "id": 3.1, "title": "Firestore para denúncias", "status": "concluído" },
+        { "id": 3.2, "title": "Storage para imagens", "status": "concluído" },
+        { "id": 3.3, "title": "Auth para admin", "status": "concluído" },
+        { "id": 3.4, "title": "Regras de segurança", "status": "concluído" }
       ]
     },
     {
       "id": 4,
-      "title": "Implementação de Features Específicas",
-      "status": "pendente",
+      "title": "Features Específicas",
+      "status": "concluído",
       "priority": "média",
       "subtasks": [
-        {
-          "id": 4.1,
-          "title": "Denúncias anônimas vs. identificadas",
-          "status": "pendente"
-        },
-        {
-          "id": 4.2,
-          "title": "Captura de localização (GPS/manual)",
-          "status": "pendente"
-        },
-        {
-          "id": 4.3,
-          "title": "Upload e compressão de imagens",
-          "status": "pendente"
-        },
-        {
-          "id": 4.4,
-          "title": "Categorização de denúncias",
-          "status": "pendente"
-        },
-        {
-          "id": 4.5,
-          "title": "Registro de data/hora",
-          "status": "pendente"
-        }
+        { "id": 4.1, "title": "Denúncias anônimas/identificadas", "status": "concluído" },
+        { "id": 4.2, "title": "Captura GPS + manual", "status": "concluído" },
+        { "id": 4.3, "title": "Upload e compressão de imagens", "status": "concluído" },
+        { "id": 4.4, "title": "Captura de câmera", "status": "concluído" },
+        { "id": 4.5, "title": "Categorias dinâmicas", "status": "concluído" },
+        { "id": 4.6, "title": "Data/hora manual", "status": "concluído" }
       ]
     },
     {
       "id": 5,
       "title": "Painel Administrativo",
-      "status": "pendente",
-      "priority": "baixa",
+      "status": "concluído",
+      "priority": "média",
       "subtasks": [
-        {
-          "id": 5.1,
-          "title": "Dashboard de visualização",
-          "status": "pendente"
-        },
-        {
-          "id": 5.2,
-          "title": "Geração de relatórios",
-          "status": "pendente"
-        },
-        {
-          "id": 5.3,
-          "title": "Visualização em mapa",
-          "status": "pendente"
-        }
+        { "id": 5.1, "title": "Dashboard com paginação", "status": "concluído" },
+        { "id": 5.2, "title": "Filtros por data/categoria/status", "status": "concluído" },
+        { "id": 5.3, "title": "Exportação CSV", "status": "concluído" },
+        { "id": 5.4, "title": "Exportação PDF", "status": "concluído" },
+        { "id": 5.5, "title": "Gerenciamento de categorias", "status": "concluído" }
       ]
     },
     {
       "id": 6,
-      "title": "Testes e Otimização",
+      "title": "Testes",
       "status": "pendente",
       "priority": "média",
       "subtasks": [
-        {
-          "id": 6.1,
-          "title": "Testes unitários",
-          "status": "pendente"
-        },
-        {
-          "id": 6.2,
-          "title": "Testes de integração",
-          "status": "pendente"
-        },
-        {
-          "id": 6.3,
-          "title": "Otimização de performance",
-          "status": "pendente"
-        }
+        { "id": 6.1, "title": "Testes unitários", "status": "pendente" },
+        { "id": 6.2, "title": "Testes de integração", "status": "pendente" },
+        { "id": 6.3, "title": "Testes E2E", "status": "pendente" }
       ]
     },
     {
       "id": 7,
       "title": "Implantação",
       "status": "pendente",
-      "priority": "baixa",
+      "priority": "alta",
       "subtasks": [
-        {
-          "id": 7.1,
-          "title": "Configurar ambiente de produção",
-          "status": "pendente"
-        },
-        {
-          "id": 7.2,
-          "title": "Implantar aplicação",
-          "status": "pendente"
-        },
-        {
-          "id": 7.3,
-          "title": "Monitoramento e manutenção",
-          "status": "pendente"
-        }
+        { "id": 7.1, "title": "Refinar regras Firebase", "status": "pendente" },
+        { "id": 7.2, "title": "Configurar CI/CD", "status": "pendente" },
+        { "id": 7.3, "title": "Deploy Vercel/Netlify", "status": "pendente" }
       ]
     }
   ]

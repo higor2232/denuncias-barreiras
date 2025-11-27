@@ -5,7 +5,7 @@ import { db } from '@/firebase/config';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import ReportDocument from './ReportDocument';
 import ImageModal from './ImageModal';
-import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, writeBatch, limit, startAfter, endBefore, getCountFromServer, where, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, limit, startAfter, getCountFromServer, where, Timestamp, type QueryDocumentSnapshot, type QueryConstraint } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Report, Category } from '@/types';
 
@@ -40,10 +40,9 @@ const AdminDashboard: React.FC = () => {
   const [currentFiltersForPdf, setCurrentFiltersForPdf] = useState({});
 
   // State for pagination
-  const [lastVisible, setLastVisible] = useState<any>(null);
-  const [firstVisible, setFirstVisible] = useState<any>(null);
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot | null>(null);
+  const [firstVisible, setFirstVisible] = useState<QueryDocumentSnapshot | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalReports, setTotalReports] = useState(0);
 
   // State for image modal
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -51,7 +50,7 @@ const AdminDashboard: React.FC = () => {
 
   const buildFilteredQuery = () => {
     const reportsCollectionRef = collection(db, 'denuncias');
-    const queryConstraints: any[] = [orderBy('createdAt', 'desc')];
+    const queryConstraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
 
     if (filterStartDate) {
       queryConstraints.push(where('createdAt', '>=', Timestamp.fromDate(new Date(filterStartDate))));
@@ -89,8 +88,7 @@ const AdminDashboard: React.FC = () => {
         setCurrentPage(1); // Reset to page 1
       } else {
         // First page load
-        const totalCountSnapshot = await getCountFromServer(collection(db, 'denuncias'));
-        setTotalReports(totalCountSnapshot.data().count);
+        await getCountFromServer(collection(db, 'denuncias'));
         q = query(reportsCollectionRef, orderBy('createdAt', 'desc'), limit(PAGE_SIZE));
         setCurrentPage(1);
       }
@@ -544,9 +542,7 @@ const AdminDashboard: React.FC = () => {
               fileName={`relatorio_denuncias_${new Date().toISOString().slice(0,10)}.pdf`}
               className="ml-4 px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
             >
-              {({ blob, url, loading, error }) => 
-                loading ? 'Gerando PDF...' : 'Baixar PDF'
-              }
+              {({ loading }) => (loading ? 'Gerando PDF...' : 'Baixar PDF')}
             </PDFDownloadLink>
           ) : null}
         </div>

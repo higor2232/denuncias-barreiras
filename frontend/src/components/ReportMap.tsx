@@ -8,7 +8,8 @@ import L from 'leaflet'; // Import L to fix marker icon issue
 
 // Fix for default marker icon issue with Webpack
 // See: https://github.com/PaulLeCam/react-leaflet/issues/808
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+const iconProto = L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void };
+delete iconProto._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',

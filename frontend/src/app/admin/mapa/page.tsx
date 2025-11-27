@@ -9,25 +9,11 @@ import {
   orderBy,
   doc,
   updateDoc,
-  Timestamp as FirestoreTimestamp // Ensure this is imported if used in your Report interface
 } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-
-// Define the Report interface 
-// (Ensure this matches the one in AdminLeafletMap.tsx or move to a shared types file)
-export interface Report { // Export if AdminLeafletMap needs to import it, or define separately there
-  id: string;
-  description: string;
-  category: string;
-  location: { latitude: number; longitude: number } | string;
-  imageUrls?: string[];
-  timestamp: any; // Consider using string if it's already formatted, or FirestoreTimestamp
-  userInfo?: { name?: string; email?: string };
-  status?: string;
-  createdAt?: FirestoreTimestamp;
-}
+import type { Report } from '@/types';
 
 // Dynamically import the map component to ensure it's client-side only
 const AdminLeafletMap = dynamic(() => import('@/components/admin/AdminLeafletMap'), {

@@ -2,6 +2,7 @@
 "use client"; 
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 // Firebase imports
 import { db, storage } from '../firebase/config';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -171,13 +172,10 @@ const ReportForm = () => {
         errorMessage += ` Detalhes: ${error.message}`;
       }
       // Check for specific Firebase errors (e.g., permissions)
-      if (typeof error === 'object' && error !== null && 'code' in error && typeof (error as any).code === 'string') {
-        const errorCode = (error as any).code as string;
-        let firebaseMessage: string | undefined = undefined;
-
-        if ('message' in error && typeof (error as any).message === 'string') {
-          firebaseMessage = (error as any).message as string;
-        }
+      if (typeof error === 'object' && error !== null && 'code' in error && typeof (error as { code?: string }).code === 'string') {
+        const typedError = error as { code?: string; message?: string };
+        const errorCode = typedError.code as string;
+        let firebaseMessage: string | undefined = typedError.message;
 
         if (errorCode === 'storage/unauthorized') {
           errorMessage = 'Erro de permissão ao enviar imagem. Verifique as regras do Firebase Storage.';
@@ -208,9 +206,9 @@ const ReportForm = () => {
     const files = event.target.files;
     if (!files) return;
 
-    let newImages: File[] = [...images];
-    let newPreviews: string[] = [...imagePreviews];
-    let currentErrors: string[] = []; // Reset errors for current batch
+    const newImages: File[] = [...images];
+    const newPreviews: string[] = [...imagePreviews];
+    const currentErrors: string[] = []; // Reset errors for current batch
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -369,7 +367,7 @@ const ReportForm = () => {
           if (blob) {
             if (images.length < MAX_IMAGES) {
               const fileName = `captured_image_${Date.now()}.jpg`;
-              let newImageFile = new File([blob], fileName, { type: 'image/jpeg' });
+              const newImageFile = new File([blob], fileName, { type: 'image/jpeg' });
 
               // Compress image
               const options = {
@@ -708,7 +706,14 @@ const ReportForm = () => {
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {imagePreviews.map((preview, index) => (
                 <div key={index} className="relative group">
-                  <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-32 object-cover rounded-md shadow-md" />
+                  <Image
+                    src={preview}
+                    alt={`Preview ${index + 1}`}
+                    width={400}
+                    height={300}
+                    unoptimized
+                    className="w-full h-32 object-cover rounded-md shadow-md"
+                  />
                   <button 
                     type="button"
                     onClick={() => removeImage(index)}

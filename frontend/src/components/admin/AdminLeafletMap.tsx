@@ -17,7 +17,7 @@ console.log('Leaflet Icon Paths:', {
 });
 
 // Fix Leaflet's default icon path issue with Webpack
-// @ts-ignore
+// @ts-expect-error: _getIconUrl é interno do Leaflet e não está tipado em @types
 delete L.Icon.Default.prototype._getIconUrl; // This is a common fix
 
 L.Icon.Default.mergeOptions({

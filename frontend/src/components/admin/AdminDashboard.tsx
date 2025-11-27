@@ -8,7 +8,7 @@ import ImageModal from './ImageModal';
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, limit, startAfter, getCountFromServer, where, Timestamp, updateDoc, type QueryDocumentSnapshot, type QueryConstraint } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
-import type { Report, Category } from '@/types';
+import type { Report, Category, ReportStatus } from '@/types';
 
 
 
@@ -178,15 +178,19 @@ const AdminDashboard: React.FC = () => {
     }
   }, [filterStartDate, filterEndDate, filterCategory, filterStatus]);
 
-  const handleUpdateReportStatus = async (reportId: string, newStatus: 'pendente' | 'em_analise' | 'aprovada' | 'resolvida' | 'rejeitada') => {
+  const handleUpdateReportStatus = async (reportId: string, newStatus: ReportStatus) => {
     if (!currentUser) return;
     try {
       const reportRef = doc(db, 'denuncias', reportId);
       await updateDoc(reportRef, { status: newStatus });
-      setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: newStatus } : r));
+      setReports((prevReports): Report[] =>
+        prevReports.map((r): Report =>
+          r.id === reportId ? { ...r, status: newStatus } : r
+        )
+      );
     } catch (error) {
       console.error('Erro ao atualizar status da denúncia:', error);
-      alert('Falha ao atualizar o status da denúncia.');
+      setReportMessage({ type: 'error', text: 'Falha ao atualizar o status da denúncia.' });
     }
   };
 

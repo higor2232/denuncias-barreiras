@@ -175,7 +175,7 @@ const ReportForm = () => {
       if (typeof error === 'object' && error !== null && 'code' in error && typeof (error as { code?: string }).code === 'string') {
         const typedError = error as { code?: string; message?: string };
         const errorCode = typedError.code as string;
-        let firebaseMessage: string | undefined = typedError.message;
+        const firebaseMessage: string | undefined = typedError.message;
 
         if (errorCode === 'storage/unauthorized') {
           errorMessage = 'Erro de permissão ao enviar imagem. Verifique as regras do Firebase Storage.';

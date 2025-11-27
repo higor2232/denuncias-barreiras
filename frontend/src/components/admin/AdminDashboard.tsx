@@ -181,7 +181,7 @@ const AdminDashboard: React.FC = () => {
 
       const csvRows = [headers.join(',')];
 
-      const escapeCsvCell = (cellData: any): string => {
+      const escapeCsvCell = (cellData: unknown): string => {
         if (cellData === null || cellData === undefined) return '';
         const stringData = String(cellData);
         // If data contains comma, newline, or double quote, enclose in double quotes and escape existing double quotes

@@ -12,16 +12,21 @@ const AdminLoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = async (event: React.FormEvent) => {
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/admin'); // Redirect to admin dashboard on successful login
-    } catch (err: any) {
+    } catch (err) {
       console.error("Login failed: ", err);
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+      const error = err as { code?: string };
+      if (
+        error.code === 'auth/invalid-credential' ||
+        error.code === 'auth/user-not-found' ||
+        error.code === 'auth/wrong-password'
+      ) {
         setError('Email ou senha inválidos.');
       } else {
         setError('Falha ao fazer login. Verifique o console para mais detalhes.');

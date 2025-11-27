@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 
 interface ImageModalProps {
   imageUrls: string[];
@@ -48,10 +49,13 @@ const ImageModal: React.FC<ImageModalProps> = ({ imageUrls, onClose }) => {
             </button>
           )}
 
-          <img 
-            src={imageUrls[currentIndex]} 
+          <Image
+            src={imageUrls[currentIndex]}
             alt={`Denúncia ${currentIndex + 1}`}
-            className="max-w-full max-h-[80vh] object-contain rounded-md"
+            width={1200}
+            height={800}
+            unoptimized
+            className="max-w-full max-h-[80vh] object-contain rounded-md h-auto w-auto"
           />
 
           {imageUrls.length > 1 && (

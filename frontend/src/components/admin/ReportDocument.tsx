@@ -1,5 +1,5 @@
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 import type { Report } from '@/types';
 
 // Register a font that supports a wider range of characters if needed
@@ -55,7 +55,8 @@ const styles = StyleSheet.create({
     color: 'grey',
   },
   table: {
-    display: "table" as any, // TODO: type assertion needed for TS
+    // @ts-expect-error '@react-pdf/renderer' aceita 'table' em runtime, mas o tipo não inclui esse valor
+    display: 'table',
     width: 'auto',
     borderStyle: 'solid',
     borderWidth: 1,

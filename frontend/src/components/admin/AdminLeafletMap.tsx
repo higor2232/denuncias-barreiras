@@ -8,6 +8,7 @@ import 'leaflet/dist/leaflet.css';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import type { Report } from '@/types';
 
 console.log('Leaflet Icon Paths:', {
   iconRetinaUrl: markerIcon2x,
@@ -26,20 +27,8 @@ L.Icon.Default.mergeOptions({
 });
 
 console.log('L.Icon.Default options after merge:', L.Icon.Default.prototype.options);
-import { Timestamp as FirestoreTimestamp } from 'firebase/firestore';
 
-// Define the Report interface (should match the one in AdminMapPage or be imported from a shared types file)
-interface Report {
-  id: string;
-  description: string;
-  category: string;
-  location: { latitude: number; longitude: number } | string;
-  imageUrls?: string[];
-  timestamp: any; 
-  userInfo?: { name?: string; email?: string };
-  status?: string;
-  createdAt?: FirestoreTimestamp;
-}
+type LeafletMapContainer = HTMLDivElement & { _leaflet_id?: number };
 
 interface AdminLeafletMapProps {
   reports: Report[];
@@ -47,26 +36,27 @@ interface AdminLeafletMapProps {
 }
 
 const AdminLeafletMap: React.FC<AdminLeafletMapProps> = ({ reports, handleUpdateStatus }) => {
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapContainerRef = useRef<LeafletMapContainer | null>(null);
   const mapRef = useRef<L.Map | null>(null); // Use useRef for map instance
   const [markerLayer, setMarkerLayer] = useState<L.FeatureGroup | null>(null);
 
   // Initialize map
   useEffect(() => {
     console.log('AdminLeafletMap: Mount/Effect Run. mapRef.current:', mapRef.current);
-    if (mapContainerRef.current) {
-      console.log('AdminLeafletMap: mapContainerRef.current._leaflet_id before init attempt:', (mapContainerRef.current as any)._leaflet_id);
+    const container = mapContainerRef.current;
+    if (container) {
+      console.log('AdminLeafletMap: mapContainerRef.current._leaflet_id before init attempt:', container._leaflet_id);
     }
 
-    if (mapContainerRef.current && !mapRef.current) {
+    if (container && !mapRef.current) {
       // Explicitly check _leaflet_id on the container before L.map()
-      if ((mapContainerRef.current as any)._leaflet_id) {
-        console.error("AdminLeafletMap: Container already has _leaflet_id. Aborting L.map(). This indicates an issue with cleanup or StrictMode.", mapContainerRef.current);
+      if (container._leaflet_id) {
+        console.error("AdminLeafletMap: Container already has _leaflet_id. Aborting L.map(). This indicates an issue with cleanup or StrictMode.", container);
         return; 
       }
       
       console.log('AdminLeafletMap: Initializing map...');
-      const map = L.map(mapContainerRef.current).setView([-14.235004, -51.92528], 5);
+      const map = L.map(container).setView([-14.235004, -51.92528], 5);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -98,11 +88,11 @@ const AdminLeafletMap: React.FC<AdminLeafletMapProps> = ({ reports, handleUpdate
         mapRef.current.remove();
         mapRef.current = null;
         
-        if (mapContainerRef.current) {
-          console.log('AdminLeafletMap: mapContainerRef.current._leaflet_id after remove:', (mapContainerRef.current as any)._leaflet_id);
-          if ((mapContainerRef.current as any)._leaflet_id) {
+        if (container) {
+          console.log('AdminLeafletMap: container._leaflet_id after remove:', container._leaflet_id);
+          if (container._leaflet_id) {
             console.error("AdminLeafletMap: _leaflet_id STILL PRESENT on container after map.remove(). Manually deleting.");
-            delete (mapContainerRef.current as any)._leaflet_id;
+            delete container._leaflet_id;
           }
         }
       } else {

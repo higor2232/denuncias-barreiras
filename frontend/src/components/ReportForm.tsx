@@ -31,6 +31,7 @@ const ReportForm = () => {
   const [showCameraModal, setShowCameraModal] = useState<boolean>(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [cameraError, setCameraError] = useState<string>('');
+  const [cameraFacingMode, setCameraFacingMode] = useState<'user' | 'environment'>('environment');
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null); // For capturing image
 
@@ -311,16 +312,17 @@ const ReportForm = () => {
     }
   };
 
-  const handleOpenCamera = async () => {
+  const startCameraWithFacingMode = async (facingMode: 'user' | 'environment') => {
     setCameraError('');
-    if (images.length >= MAX_IMAGES) {
-      setImageErrors([`Você já atingiu o limite de ${MAX_IMAGES} imagens.`]);
-      return;
-    }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const constraints: MediaStreamConstraints = {
+        video: { facingMode },
+        audio: false,
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       setCameraStream(stream);
       setShowCameraModal(true);
+      setCameraFacingMode(facingMode);
     } catch (err) {
       console.error("Erro ao acessar a câmera:", err);
       if (err instanceof Error) {
@@ -336,6 +338,15 @@ const ReportForm = () => {
       }
       setShowCameraModal(false);
     }
+  };
+
+  const handleOpenCamera = async () => {
+    if (images.length >= MAX_IMAGES) {
+      setImageErrors([`Você já atingiu o limite de ${MAX_IMAGES} imagens.`]);
+      return;
+    }
+    // Tenta abrir diretamente com a câmera traseira em dispositivos móveis; em desktop o navegador pode ignorar o facingMode
+    await startCameraWithFacingMode('environment');
   };
 
   useEffect(() => {
@@ -693,8 +704,11 @@ const ReportForm = () => {
             className="mt-2 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
             disabled={isSubmitting || images.length >= MAX_IMAGES}
           >
-            Tirar Foto
+            📷 Tirar Foto com a Câmera
           </button>
+          <p className="mt-1 text-xs text-gray-500">
+            Dentro do modal você pode alternar entre a câmera frontal e traseira antes de capturar a imagem.
+          </p>
           {imageErrors.length > 0 && (
             <div className="mt-2 text-sm text-red-600 space-y-1">
               {imageErrors.map((error, index) => (
@@ -753,6 +767,27 @@ const ReportForm = () => {
             <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Câmera</h3>
             {cameraError && <p className="text-red-500 text-sm mb-2">{cameraError}</p>}
             <video ref={videoRef} autoPlay playsInline className="w-full h-auto bg-gray-200 rounded mb-4 aspect-video"></video>
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-xs text-gray-500">
+                Câmera atual: <span className="font-semibold">{cameraFacingMode === 'environment' ? 'Traseira' : 'Frontal'}</span>
+              </span>
+              <button
+                type="button"
+                onClick={async () => {
+                  // Alterna entre frontal e traseira
+                  const nextMode: 'user' | 'environment' = cameraFacingMode === 'environment' ? 'user' : 'environment';
+                  if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                    setCameraStream(null);
+                  }
+                  await startCameraWithFacingMode(nextMode);
+                }}
+                className="px-3 py-1 text-xs font-medium text-white bg-gray-700 hover:bg-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 flex items-center gap-1"
+                disabled={!!cameraError}
+              >
+                🔁 Alternar para câmera {cameraFacingMode === 'environment' ? 'frontal' : 'traseira'}
+              </button>
+            </div>
             <div className="flex justify-end space-x-2">
               <button
                 type="button"

@@ -8,13 +8,7 @@ import 'leaflet/dist/leaflet.css';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import type { Report } from '@/types';
-
-console.log('Leaflet Icon Paths:', {
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow
-});
+import type { Report, ReportStatus } from '@/types';
 
 // Fix Leaflet's default icon path issue with Webpack
 // @ts-expect-error: _getIconUrl é interno do Leaflet e não está tipado em @types
@@ -26,13 +20,12 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow.src || markerShadow,
 });
 
-console.log('L.Icon.Default options after merge:', L.Icon.Default.prototype.options);
 
 type LeafletMapContainer = HTMLDivElement & { _leaflet_id?: number };
 
 interface AdminLeafletMapProps {
   reports: Report[];
-  handleUpdateStatus: (reportId: string, newStatus: string) => Promise<void>;
+  handleUpdateStatus: (reportId: string, newStatus: ReportStatus) => Promise<void>;
 }
 
 const AdminLeafletMap: React.FC<AdminLeafletMapProps> = ({ reports, handleUpdateStatus }) => {
@@ -40,7 +33,7 @@ const AdminLeafletMap: React.FC<AdminLeafletMapProps> = ({ reports, handleUpdate
   const mapRef = useRef<L.Map | null>(null); // Use useRef for map instance
   const [markerLayer, setMarkerLayer] = useState<L.FeatureGroup | null>(null);
 
-  const getStatusColor = (status?: string) => {
+  const getStatusColor = (status?: ReportStatus) => {
     if (!status || status === 'pendente') return '#facc15'; // amarelo
     if (status === 'em_analise') return '#3b82f6'; // azul
     if (status === 'aprovada') return '#22c55e'; // verde
@@ -51,20 +44,14 @@ const AdminLeafletMap: React.FC<AdminLeafletMapProps> = ({ reports, handleUpdate
 
   // Initialize map
   useEffect(() => {
-    console.log('AdminLeafletMap: Mount/Effect Run. mapRef.current:', mapRef.current);
     const container = mapContainerRef.current;
-    if (container) {
-      console.log('AdminLeafletMap: mapContainerRef.current._leaflet_id before init attempt:', container._leaflet_id);
-    }
 
     if (container && !mapRef.current) {
-      // Explicitly check _leaflet_id on the container before L.map()
       if (container._leaflet_id) {
-        console.error("AdminLeafletMap: Container already has _leaflet_id. Aborting L.map(). This indicates an issue with cleanup or StrictMode.", container);
+        console.error("AdminLeafletMap: Container já possui _leaflet_id. Abortando inicialização do mapa.");
         return; 
       }
       
-      console.log('AdminLeafletMap: Initializing map...');
       const map = L.map(container).setView([-14.235004, -51.92528], 5);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -76,36 +63,22 @@ const AdminLeafletMap: React.FC<AdminLeafletMapProps> = ({ reports, handleUpdate
       mapRef.current = map;
 
       setTimeout(() => {
-        if (mapRef.current) { // Check if map still exists
-            mapRef.current.invalidateSize();
-            console.log('AdminLeafletMap: invalidateSize called.');
+        if (mapRef.current) {
+          mapRef.current.invalidateSize();
         }
       }, 0);
-    } else {
-      if (!mapContainerRef.current) {
-        console.warn('AdminLeafletMap: mapContainerRef.current is null. Cannot initialize map.');
-      }
-      if (mapRef.current) {
-        console.log('AdminLeafletMap: Map already initialized (mapRef.current exists). Skipping init.');
-      }
     }
 
     return () => {
-      console.log('AdminLeafletMap: Cleanup Run. mapRef.current:', mapRef.current);
       if (mapRef.current) {
-        console.log('AdminLeafletMap: Removing map instance.');
         mapRef.current.remove();
         mapRef.current = null;
         
         if (container) {
-          console.log('AdminLeafletMap: container._leaflet_id after remove:', container._leaflet_id);
           if (container._leaflet_id) {
-            console.error("AdminLeafletMap: _leaflet_id STILL PRESENT on container after map.remove(). Manually deleting.");
             delete container._leaflet_id;
           }
         }
-      } else {
-        console.log('AdminLeafletMap: Cleanup: No map instance to remove (mapRef.current is null).');
       }
     };
   }, []);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
-import type { Report } from '@/types';
+import type { Report, ReportStatus } from '@/types';
 
 // Register a font that supports a wider range of characters if needed
 // Font.register({
@@ -150,7 +150,7 @@ interface ReportDocumentProps {
 const ReportDocument: React.FC<ReportDocumentProps> = ({ reports, filters }) => {
   const total = reports.length;
 
-  const statusOrder: Array<'pendente' | 'em_analise' | 'aprovada' | 'resolvida' | 'rejeitada'> = [
+  const statusOrder: ReportStatus[] = [
     'pendente',
     'em_analise',
     'aprovada',

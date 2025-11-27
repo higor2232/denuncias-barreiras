@@ -136,7 +136,6 @@ const ReportForm = () => {
       if (images.length > 0) {
         const uploadPromises: Promise<string>[] = images.map(async (imageFile): Promise<string> => {
           const imagePath = `denuncias_imagens/${Date.now()}_${imageFile.name}`;
-          console.log('Firebase Storage imagePath:', imagePath);
           const imageRef = ref(storage, imagePath);
           const snapshot = await uploadBytesResumable(imageRef, imageFile);
           const downloadUrl = await getDownloadURL(snapshot.ref);
@@ -241,9 +240,7 @@ const ReportForm = () => {
       };
 
       try {
-        console.log(`Original file size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
         const compressedFile = await imageCompression(file, options);
-        console.log(`Compressed file size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
         newImages.push(compressedFile);
         newPreviews.push(URL.createObjectURL(compressedFile));
       } catch (error) {
@@ -395,9 +392,7 @@ const ReportForm = () => {
               };
 
               try {
-                console.log(`Captured original file size: ${(newImageFile.size / 1024 / 1024).toFixed(2)} MB`);
                 const compressedFile = await imageCompression(newImageFile, options);
-                console.log(`Captured compressed file size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
                 setImages(prevImages => [...prevImages, compressedFile]);
                 setImagePreviews(prevPreviews => [...prevPreviews, URL.createObjectURL(compressedFile)]);
                 setImageErrors([]); // Clear previous image errors on successful capture and compression

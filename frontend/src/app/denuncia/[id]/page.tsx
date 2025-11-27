@@ -45,7 +45,15 @@ const DenunciaDetalhePage: React.FC = () => {
           setError("Nenhuma denúncia encontrada com este código.");
           setReport(null);
         } else {
-          const data = snap.data() as any;
+          const data = snap.data() as {
+            description?: string;
+            category?: string;
+            location?: Report["location"];
+            imageUrls?: string[];
+            createdAt?: { toDate?: () => Date };
+            userInfo?: Report["userInfo"];
+            status?: ReportStatus;
+          };
           const reportData: Report = {
             id: snap.id,
             description: data.description || "Sem descrição",
@@ -56,7 +64,7 @@ const DenunciaDetalhePage: React.FC = () => {
               data.createdAt?.toDate?.() != null
                 ? data.createdAt.toDate().toLocaleString()
                 : "Data não disponível",
-            createdAt: data.createdAt,
+            createdAt: data.createdAt as Report["createdAt"],
             userInfo: data.userInfo,
             status: data.status,
           };

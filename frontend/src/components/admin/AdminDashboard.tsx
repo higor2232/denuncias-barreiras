@@ -39,6 +39,7 @@ const AdminDashboard: React.FC = () => {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfFilteredReports, setPdfFilteredReports] = useState<Report[]>([]);
   const [currentFiltersForPdf, setCurrentFiltersForPdf] = useState({});
+  const [reportMessage, setReportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // State for pagination
   const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot | null>(null);
@@ -199,6 +200,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleGenerateCsvReport = async () => {
     setIsGeneratingCsv(true);
+    setReportMessage(null);
     try {
       const q = buildFilteredQuery();
       const reportSnapshot = await getDocs(q);
@@ -209,7 +211,7 @@ const AdminDashboard: React.FC = () => {
       })) as Report[];
 
       if (filteredReports.length === 0) {
-        alert('Nenhuma denúncia encontrada com os filtros selecionados.');
+        setReportMessage({ type: 'error', text: 'Nenhuma denúncia encontrada com os filtros selecionados para gerar o CSV.' });
         return;
       }
 
@@ -269,9 +271,10 @@ const AdminDashboard: React.FC = () => {
       URL.revokeObjectURL(url);
 
       console.log(`Generated CSV for ${filteredReports.length} reports.`);
+      setReportMessage({ type: 'success', text: `Relatório CSV gerado com ${filteredReports.length} denúncias.` });
     } catch (error) {
       console.error("Error generating CSV report: ", error);
-      alert('Falha ao gerar o relatório CSV.');
+      setReportMessage({ type: 'error', text: 'Falha ao gerar o relatório CSV.' });
     } finally {
       setIsGeneratingCsv(false);
     }
@@ -279,6 +282,7 @@ const AdminDashboard: React.FC = () => {
 
   const handlePreparePdfReport = async () => {
     setIsGeneratingPdf(true);
+    setReportMessage(null);
     try {
       const q = buildFilteredQuery();
       const reportSnapshot = await getDocs(q);
@@ -289,7 +293,7 @@ const AdminDashboard: React.FC = () => {
       })) as Report[];
 
       if (filteredReports.length === 0) {
-        alert('Nenhuma denúncia encontrada para gerar o PDF com os filtros selecionados.');
+        setReportMessage({ type: 'error', text: 'Nenhuma denúncia encontrada para gerar o PDF com os filtros selecionados.' });
         setIsGeneratingPdf(false);
         return;
       }
@@ -297,9 +301,10 @@ const AdminDashboard: React.FC = () => {
       setPdfFilteredReports(filteredReports);
       setCurrentFiltersForPdf({ startDate: filterStartDate, endDate: filterEndDate, category: filterCategory, status: filterStatus });
       setIsGeneratingPdf(false);
+      setReportMessage({ type: 'success', text: `Relatório PDF preparado com ${filteredReports.length} denúncias.` });
     } catch (error) {
       console.error("Error preparing PDF report: ", error);
-      alert('Ocorreu um erro ao preparar o relatório PDF.');
+      setReportMessage({ type: 'error', text: 'Ocorreu um erro ao preparar o relatório PDF.' });
       setIsGeneratingPdf(false);
     }
   };
@@ -618,6 +623,11 @@ const AdminDashboard: React.FC = () => {
       {/* Section for Report Generation */}
       <div className="mt-10 p-6 bg-white shadow rounded-lg">
         <h2 className="text-2xl font-semibold mb-6 text-gray-700">Gerar Relatórios</h2>
+        {reportMessage && (
+          <div className={`mb-4 text-sm px-3 py-2 rounded border ${reportMessage.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-700'}`}>
+            {reportMessage.text}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div>
             <label htmlFor="filterStartDate" className="block text-sm font-medium text-gray-700 mb-1">Data Inicial:</label>

@@ -40,7 +40,8 @@ const MapaPage = () => {
         const fetchedReports: Report[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          if (data.location && typeof data.location.latitude === 'number' && typeof data.location.longitude === 'number') {
+          // Apenas denúncias aprovadas aparecem no mapa público
+          if (data.status === 'aprovada' && data.location && typeof data.location.latitude === 'number' && typeof data.location.longitude === 'number') {
             fetchedReports.push({
               id: doc.id,
               latitude: data.location.latitude,
@@ -67,10 +68,10 @@ const MapaPage = () => {
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-          Mapa de Denúncias
+          Mapa de Denúncias Aprovadas
         </h1>
         <p className="text-gray-600">
-          Visualize todas as denúncias ambientais registradas na região
+          Visualize as denúncias ambientais aprovadas pela administração.
         </p>
       </div>
 
@@ -85,7 +86,7 @@ const MapaPage = () => {
 
       {/* Map Container */}
       {loading ? (
-        <div className="h-[500px] bg-gray-200 animate-pulse rounded-xl flex items-center justify-center">
+        <div className="h-[380px] md:h-[420px] bg-gray-200 animate-pulse rounded-xl flex items-center justify-center">
           <div className="text-center">
             <svg className="animate-spin h-8 w-8 text-green-600 mx-auto mb-2" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -108,7 +109,7 @@ const MapaPage = () => {
           </button>
         </div>
       ) : (
-        <div className="shadow-xl rounded-xl overflow-hidden border border-gray-200">
+        <div className="shadow-md rounded-xl overflow-hidden border border-gray-200">
           <ReportMap reports={reports} />
         </div>
       )}

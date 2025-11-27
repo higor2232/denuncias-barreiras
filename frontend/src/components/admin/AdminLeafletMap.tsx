@@ -40,6 +40,15 @@ const AdminLeafletMap: React.FC<AdminLeafletMapProps> = ({ reports, handleUpdate
   const mapRef = useRef<L.Map | null>(null); // Use useRef for map instance
   const [markerLayer, setMarkerLayer] = useState<L.FeatureGroup | null>(null);
 
+  const getStatusColor = (status?: string) => {
+    if (!status || status === 'pendente') return '#facc15'; // amarelo
+    if (status === 'em_analise') return '#3b82f6'; // azul
+    if (status === 'aprovada') return '#22c55e'; // verde
+    if (status === 'resolvida') return '#10b981'; // verde esmeralda
+    if (status === 'rejeitada') return '#ef4444'; // vermelho
+    return '#6b7280'; // cinza
+  };
+
   // Initialize map
   useEffect(() => {
     console.log('AdminLeafletMap: Mount/Effect Run. mapRef.current:', mapRef.current);
@@ -134,14 +143,16 @@ const AdminLeafletMap: React.FC<AdminLeafletMapProps> = ({ reports, handleUpdate
             popupContent += `<p style="margin-top: 8px;"><strong>Imagem:</strong><br/><img src="${report.imageUrls[0]}" alt="Imagem da denúncia" style="max-width: 150px; max-height: 150px; margin-top: 5px; border-radius: 4px;" /></p>`;
           }
 
-          const currentStatus = report.status || 'Pendente';
+          const currentStatus = report.status || 'pendente';
           popupContent += `
             <div style="margin-top: 10px;">
               <label for="status-select-${report.id}" style="margin-right: 5px;">Mudar Status:</label>
               <select id="status-select-${report.id}" style="padding: 5px; border-radius: 4px;">
-                <option value="Pendente" ${currentStatus === 'Pendente' ? 'selected' : ''}>Pendente</option>
-                <option value="Em Análise" ${currentStatus === 'Em Análise' ? 'selected' : ''}>Em Análise</option>
-                <option value="Resolvido" ${currentStatus === 'Resolvido' ? 'selected' : ''}>Resolvido</option>
+                <option value="pendente" ${currentStatus === 'pendente' ? 'selected' : ''}>Pendente</option>
+                <option value="em_analise" ${currentStatus === 'em_analise' ? 'selected' : ''}>Em Análise</option>
+                <option value="aprovada" ${currentStatus === 'aprovada' ? 'selected' : ''}>Aprovada</option>
+                <option value="resolvida" ${currentStatus === 'resolvida' ? 'selected' : ''}>Resolvida</option>
+                <option value="rejeitada" ${currentStatus === 'rejeitada' ? 'selected' : ''}>Rejeitada</option>
               </select>
               <button id="update-status-btn-${report.id}" data-report-id="${report.id}" style="margin-left: 10px; padding: 5px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Atualizar</button>
             </div>
@@ -149,7 +160,14 @@ const AdminLeafletMap: React.FC<AdminLeafletMapProps> = ({ reports, handleUpdate
           
           popupContent += `</div>`;
 
-          const marker = L.marker([lat, lng])
+          const markerIcon = L.divIcon({
+            className: 'custom-status-marker',
+            html: `<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background-color:${getStatusColor(report.status)};border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.4);"></span>`,
+            iconSize: [18, 18],
+            iconAnchor: [9, 9],
+          });
+
+          const marker = L.marker([lat, lng], { icon: markerIcon })
             .bindPopup(popupContent)
             .addTo(markerLayer);
 
@@ -160,7 +178,7 @@ const AdminLeafletMap: React.FC<AdminLeafletMapProps> = ({ reports, handleUpdate
               document.getElementById(`update-status-btn-${report.id}`)?.addEventListener('click', () => {
                 const selectElement = document.getElementById(`status-select-${report.id}`) as HTMLSelectElement;
                 if (selectElement) {
-                  const newStatus = selectElement.value;
+                  const newStatus = selectElement.value as 'pendente' | 'em_analise' | 'aprovada' | 'resolvida' | 'rejeitada';
                   handleUpdateStatus(report.id, newStatus).then(() => {
                     mapRef.current?.closePopup(); // Use mapRef.current
                   });
@@ -174,8 +192,31 @@ const AdminLeafletMap: React.FC<AdminLeafletMapProps> = ({ reports, handleUpdate
   }, [reports, markerLayer, handleUpdateStatus]); // mapRef.current is stable, no need to include mapRef in deps
 
   return (
-    <div ref={mapContainerRef} id="adminMapIdLeaflet" style={{ height: '100%', width: '100%' }} className="rounded shadow-lg bg-gray-200">
+    <div ref={mapContainerRef} id="adminMapIdLeaflet" style={{ height: '100%', width: '100%' }} className="rounded shadow-lg bg-gray-200 relative">
       {/* Map is rendered here by Leaflet */}
+      <div className="absolute bottom-2 left-2 bg-white/90 rounded-md shadow px-3 py-2 text-[10px] text-gray-700 space-y-1 border border-gray-200">
+        <p className="font-semibold text-[11px]">Legenda de status</p>
+        <div className="flex items-center gap-1">
+          <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor('pendente') }}></span>
+          <span>Pendente</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor('em_analise') }}></span>
+          <span>Em Análise</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor('aprovada') }}></span>
+          <span>Aprovada</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor('resolvida') }}></span>
+          <span>Resolvida</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor('rejeitada') }}></span>
+          <span>Rejeitada</span>
+        </div>
+      </div>
     </div>
   );
 };

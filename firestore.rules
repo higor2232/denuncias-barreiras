@@ -13,8 +13,9 @@ service cloud.firestore {
       // Leitura pública para o mapa
       allow read: if true;
       
-      // Apenas admins autenticados podem atualizar/deletar
-      allow update, delete: if request.auth != null;
+      // Apenas usuários autenticados podem atualizar/deletar e somente para alterar campos permitidos
+      allow update, delete: if request.auth != null
+                            && isValidStatusUpdate(resource.data, request.resource.data);
     }
 
     // ========================================
@@ -47,6 +48,16 @@ service cloud.firestore {
              data.category is string &&
              data.category.size() > 0 &&
              data.reportType in ['anonymous', 'identified'];
+    }
+
+    // Permite apenas mudanças válidas de status no fluxo definido
+    function isValidStatusUpdate(before, after) {
+      // Lista de status permitidos
+      let allowed = ['pendente', 'em_analise', 'aprovada', 'resolvida', 'rejeitada'];
+
+      // Todos os campos, exceto status, devem permanecer iguais
+      return before.diff(after).changedKeys().hasOnly(['status'])
+             && after.status in allowed;
     }
   }
 }

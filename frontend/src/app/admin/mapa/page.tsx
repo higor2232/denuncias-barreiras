@@ -109,10 +109,16 @@ const AdminMapPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Mapa de Denúncias - Admin</h1>
-      
-      <div style={{ height: '600px', width: '100%' }} className="rounded shadow-lg bg-gray-200 relative">
+    <div className="min-h-screen bg-gray-100">
+      <div className="container mx-auto p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-gray-800">Mapa de Denúncias - Admin</h1>
+          <Link href="/admin" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            Voltar para o Painel
+          </Link>
+        </div>
+        
+        <div style={{ height: '600px', width: '100%' }} className="rounded shadow bg-gray-200 relative">
         {/* Conditional rendering for the map or no reports message */}
         {reports.length > 0 ? (
           <AdminLeafletMap reports={reports} handleUpdateStatus={handleUpdateStatus} />
@@ -121,9 +127,10 @@ const AdminMapPage: React.FC = () => {
             <p className='p-4 text-center text-gray-500'>Nenhuma denúncia encontrada para exibir no mapa.</p>
           </div>
         )}
-      </div>
+        </div>
 
-      <p className="mt-4 text-center text-gray-600">Total de denúncias carregadas: {reports.length}</p>
+        <p className="mt-4 text-center text-gray-600">Total de denúncias carregadas: {reports.length}</p>
+      </div>
     </div>
   );
 };

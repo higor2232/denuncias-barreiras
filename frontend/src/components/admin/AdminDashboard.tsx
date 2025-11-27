@@ -5,8 +5,9 @@ import { db } from '@/firebase/config';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import ReportDocument from './ReportDocument';
 import ImageModal from './ImageModal';
-import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, limit, startAfter, getCountFromServer, where, Timestamp, type QueryDocumentSnapshot, type QueryConstraint } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, limit, startAfter, getCountFromServer, where, Timestamp, updateDoc, type QueryDocumentSnapshot, type QueryConstraint } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
 import type { Report, Category } from '@/types';
 
 
@@ -32,7 +33,7 @@ const AdminDashboard: React.FC = () => {
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
   const [filterCategory, setFilterCategory] = useState('all'); // 'all' or category id/name
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'Pendente', 'Em Análise', 'Resolvido'
+  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'pendente', 'aprovada', 'rejeitada'
   const [isGeneratingCsv, setIsGeneratingCsv] = useState(false);
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -138,6 +139,55 @@ const AdminDashboard: React.FC = () => {
       setIsLoadingCategories(false);
     }
   }, [currentUser]);
+
+  // Restaurar filtros salvos no carregamento inicial
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = window.localStorage.getItem('adminReportFilters');
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as {
+        filterStartDate?: string;
+        filterEndDate?: string;
+        filterCategory?: string;
+        filterStatus?: string;
+      };
+      if (parsed.filterStartDate) setFilterStartDate(parsed.filterStartDate);
+      if (parsed.filterEndDate) setFilterEndDate(parsed.filterEndDate);
+      if (parsed.filterCategory) setFilterCategory(parsed.filterCategory);
+      if (parsed.filterStatus) setFilterStatus(parsed.filterStatus);
+    } catch (e) {
+      console.warn('Falha ao restaurar filtros salvos do admin:', e);
+    }
+  }, []);
+
+  // Salvar filtros sempre que mudarem
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const payload = {
+      filterStartDate,
+      filterEndDate,
+      filterCategory,
+      filterStatus,
+    };
+    try {
+      window.localStorage.setItem('adminReportFilters', JSON.stringify(payload));
+    } catch (e) {
+      console.warn('Falha ao salvar filtros do admin:', e);
+    }
+  }, [filterStartDate, filterEndDate, filterCategory, filterStatus]);
+
+  const handleUpdateReportStatus = async (reportId: string, newStatus: 'pendente' | 'em_analise' | 'aprovada' | 'resolvida' | 'rejeitada') => {
+    if (!currentUser) return;
+    try {
+      const reportRef = doc(db, 'denuncias', reportId);
+      await updateDoc(reportRef, { status: newStatus });
+      setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: newStatus } : r));
+    } catch (error) {
+      console.error('Erro ao atualizar status da denúncia:', error);
+      alert('Falha ao atualizar o status da denúncia.');
+    }
+  };
 
   useEffect(() => {
     if (currentUser) {
@@ -246,6 +296,7 @@ const AdminDashboard: React.FC = () => {
     
       setPdfFilteredReports(filteredReports);
       setCurrentFiltersForPdf({ startDate: filterStartDate, endDate: filterEndDate, category: filterCategory, status: filterStatus });
+      setIsGeneratingPdf(false);
     } catch (error) {
       console.error("Error preparing PDF report: ", error);
       alert('Ocorreu um erro ao preparar o relatório PDF.');
@@ -322,15 +373,59 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto p-4 md:p-6">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Painel Administrativo</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Painel Administrativo</h1>
+          <div className="mt-2 flex gap-2 text-sm">
+            <span className="text-gray-600">Sessões:</span>
+            <Link href="/admin" className="text-blue-600 hover:underline">Painel</Link>
+            <span className="text-gray-400">|</span>
+            <Link href="/admin/mapa" className="text-blue-600 hover:underline">Mapa Admin</Link>
+          </div>
+        </div>
         <button 
           onClick={logout}
           className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-150"
         >
           Sair (Logout)
         </button>
+      </div>
+
+      {/* Resumo rápido de status */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        {(() => {
+          const pending = reports.filter(r => !r.status || r.status === 'pendente').length;
+          const inReview = reports.filter(r => r.status === 'em_analise').length;
+          const approved = reports.filter(r => r.status === 'aprovada').length;
+          const resolved = reports.filter(r => r.status === 'resolvida').length;
+          const rejected = reports.filter(r => r.status === 'rejeitada').length;
+          return (
+            <>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-xs font-medium text-yellow-800 uppercase tracking-wide">Pendentes</p>
+                <p className="mt-1 text-2xl font-bold text-yellow-900">{pending}</p>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs font-medium text-blue-800 uppercase tracking-wide">Em Análise</p>
+                <p className="mt-1 text-2xl font-bold text-blue-900">{inReview}</p>
+              </div>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <p className="text-xs font-medium text-green-800 uppercase tracking-wide">Aprovadas</p>
+                <p className="mt-1 text-2xl font-bold text-green-900">{approved}</p>
+              </div>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                <p className="text-xs font-medium text-emerald-800 uppercase tracking-wide">Resolvidas</p>
+                <p className="mt-1 text-2xl font-bold text-emerald-900">{resolved}</p>
+              </div>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-xs font-medium text-red-800 uppercase tracking-wide">Rejeitadas</p>
+                <p className="mt-1 text-2xl font-bold text-red-900">{rejected}</p>
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       {/* Section for Reports */}
@@ -345,7 +440,7 @@ const AdminDashboard: React.FC = () => {
         ) : reports.length === 0 ? (
           <div className="text-center p-10 bg-white shadow-md rounded-lg">Nenhuma denúncia encontrada.</div>
         ) : (
-          <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+          <div className="overflow-x-auto bg-white shadow rounded-lg">
             <table className="min-w-full table-auto text-sm text-left text-gray-500">
               <thead className="text-xs text-gray-700 uppercase bg-gray-100">
                 <tr>
@@ -355,6 +450,7 @@ const AdminDashboard: React.FC = () => {
                   <th scope="col" className="px-6 py-3">Descrição (início)</th>
                   <th scope="col" className="px-6 py-3">Tipo</th>
                   <th scope="col" className="px-6 py-3">Identificação</th>
+                  <th scope="col" className="px-6 py-3 text-center">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -363,12 +459,21 @@ const AdminDashboard: React.FC = () => {
                     <td className="px-6 py-4">{report.timestamp}</td>
                     <td className="px-6 py-4">{report.category}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full 
-                        ${report.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 
-                          report.status === 'resolvido' ? 'bg-green-100 text-green-800' : 
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full 
+                        ${(!report.status || report.status === 'pendente') ? 'bg-yellow-100 text-yellow-800' : 
                           report.status === 'em_analise' ? 'bg-blue-100 text-blue-800' : 
-                          'bg-gray-100 text-gray-800'}`}>
-                        {report.status || 'Não definido'}
+                          report.status === 'aprovada' ? 'bg-green-100 text-green-800' : 
+                          report.status === 'resolvida' ? 'bg-emerald-100 text-emerald-800' : 
+                          report.status === 'rejeitada' ? 'bg-red-100 text-red-800' : 
+                          'bg-gray-100 text-gray-800'}`}
+                      >
+                        {(!report.status || report.status === 'pendente') && 'Pendente'}
+                        {report.status === 'em_analise' && 'Em Análise'}
+                        {report.status === 'aprovada' && 'Aprovada'}
+                        {report.status === 'resolvida' && 'Resolvida'}
+                        {report.status === 'rejeitada' && 'Rejeitada'}
+                        {report.status && !['pendente','em_analise','aprovada','resolvida','rejeitada'].includes(report.status) && report.status}
                       </span>
                     </td>
                     <td className="px-6 py-4">{report.description.substring(0, 50)}{report.description.length > 50 ? '...' : ''}</td>
@@ -383,6 +488,48 @@ const AdminDashboard: React.FC = () => {
                         className="font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
                       >
                         Ver Imagens
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 flex flex-col gap-1 items-start">
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateReportStatus(report.id, 'pendente')}
+                        className="px-3 py-1 text-xs font-medium rounded bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50"
+                        disabled={!report.status || report.status === 'pendente'}
+                      >
+                        Marcar como Pendente
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateReportStatus(report.id, 'em_analise')}
+                        className="px-3 py-1 text-xs font-medium rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                        disabled={report.status === 'em_analise'}
+                      >
+                        Marcar como Em Análise
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateReportStatus(report.id, 'aprovada')}
+                        className="px-3 py-1 text-xs font-medium rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                        disabled={report.status === 'aprovada'}
+                      >
+                        Aprovar (mostrar no mapa público)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateReportStatus(report.id, 'resolvida')}
+                        className="px-3 py-1 text-xs font-medium rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                        disabled={report.status === 'resolvida'}
+                      >
+                        Marcar como Resolvida
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateReportStatus(report.id, 'rejeitada')}
+                        className="px-3 py-1 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                        disabled={report.status === 'rejeitada'}
+                      >
+                        Rejeitar
                       </button>
                     </td>
                   </tr>
@@ -417,7 +564,7 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Section for Category Management */}
-      <div className="mt-10 p-6 bg-white shadow-md rounded-lg">
+      <div className="mt-10 p-6 bg-white shadow rounded-lg">
         <h2 className="text-2xl font-semibold mb-4 text-gray-700">Gerenciar Categorias de Denúncia</h2>
         {isLoadingCategories ? (
           <p>Carregando categorias...</p>
@@ -469,7 +616,7 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Section for Report Generation */}
-      <div className="mt-10 p-6 bg-white shadow-md rounded-lg">
+      <div className="mt-10 p-6 bg-white shadow rounded-lg">
         <h2 className="text-2xl font-semibold mb-6 text-gray-700">Gerar Relatórios</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div>
@@ -515,9 +662,11 @@ const AdminDashboard: React.FC = () => {
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
             >
               <option value="all">Todos os Status</option>
-              <option value="Pendente">Pendente</option>
-              <option value="Em Análise">Em Análise</option>
-              <option value="Resolvido">Resolvido</option>
+              <option value="pendente">Pendente</option>
+              <option value="em_analise">Em Análise</option>
+              <option value="aprovada">Aprovada</option>
+              <option value="resolvida">Resolvida</option>
+              <option value="rejeitada">Rejeitada</option>
             </select>
           </div>
         </div>
@@ -549,6 +698,7 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {isImageModalOpen && <ImageModal imageUrls={selectedImages} onClose={() => setIsImageModalOpen(false)} />}
+    </div>
     </div>
   );
 };

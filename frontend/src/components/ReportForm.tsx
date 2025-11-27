@@ -3,6 +3,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 // Firebase imports
 import { db, storage } from '../firebase/config';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -15,6 +17,7 @@ interface Category {
 }
 
 const ReportForm = () => {
+  const router = useRouter();
   // Estados para os campos do formulário
   const [description, setDescription] = useState('');
   const [reportType, setReportType] = useState<'anonymous' | 'identified'>('anonymous');
@@ -43,6 +46,8 @@ const ReportForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [isFetchingLocation, setIsFetchingLocation] = useState<boolean>(false);
+  const [lastCreatedReportId, setLastCreatedReportId] = useState<string | null>(null);
+  const [trackCode, setTrackCode] = useState('');
 
   // States for manual timestamp
   const [enableManualTimestamp, setEnableManualTimestamp] = useState<boolean>(false);
@@ -95,6 +100,7 @@ const ReportForm = () => {
     event.preventDefault();
     setIsSubmitting(true);
     setSubmitMessage('');
+    setLastCreatedReportId(null);
 
     // Basic validation checks
     if (description.trim() === '') {
@@ -161,9 +167,10 @@ const ReportForm = () => {
     };
 
       // Add document to Firestore
-      await addDoc(collection(db, 'denuncias'), reportData);
+      const docRef = await addDoc(collection(db, 'denuncias'), reportData);
 
-      setSubmitMessage('Denúncia enviada com sucesso!');
+      setLastCreatedReportId(docRef.id);
+      setSubmitMessage('Denúncia enviada com sucesso! Guarde o código abaixo para acompanhar o status.');
       resetForm();
 
     } catch (error) {
@@ -423,8 +430,8 @@ const ReportForm = () => {
 
 
   return (
-    <>
-      <form onSubmit={handleSubmit} className="space-y-6 p-6 bg-white shadow-xl rounded-2xl">
+    <div className="bg-gray-50 py-6 sm:py-8">
+      <form onSubmit={handleSubmit} className="space-y-6 p-6 bg-white shadow rounded-2xl max-w-3xl mx-auto">
       {/* Tipo de Denúncia */}
       <fieldset className="border border-gray-200 p-4 rounded-xl">
         <legend className="text-md font-semibold text-gray-700 px-2">Tipo de Denúncia:</legend>
@@ -757,13 +764,59 @@ const ReportForm = () => {
             {submitMessage}
           </p>
         )}
+        {lastCreatedReportId && (
+          <div className="mt-3 text-center text-xs text-gray-700 space-y-1">
+            <p>
+              Código da sua denúncia:
+              <span className="ml-1 font-mono font-semibold break-all">{lastCreatedReportId}</span>
+            </p>
+            <p>
+              Você pode acompanhar o status acessando a página
+              <Link
+                href={`/denuncia/${lastCreatedReportId}`}
+                className="ml-1 font-mono text-blue-700 underline break-all"
+              >
+                /denuncia/{lastCreatedReportId}
+              </Link>
+              .
+            </p>
+          </div>
+        )}
       </div>
     </form>
 
+    {/* Bloco para acompanhar denúncia existente pelo código */}
+    <div className="mt-8 max-w-3xl mx-auto bg-white rounded-2xl shadow p-4 border border-gray-100">
+      <h2 className="text-sm font-semibold text-gray-800 mb-2">Já enviou uma denúncia?</h2>
+      <p className="text-xs text-gray-600 mb-3">
+        Digite o código da sua denúncia para acompanhar o status.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <input
+          type="text"
+          value={trackCode}
+          onChange={(e) => setTrackCode(e.target.value.trim())}
+          placeholder="Ex: ABC123..."
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm text-gray-900 bg-white"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            if (!trackCode) return;
+            router.push(`/denuncia/${trackCode}`);
+          }}
+          className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+          disabled={!trackCode}
+        >
+          Acompanhar denúncia
+        </button>
+      </div>
+    </div>
+
     {/* Camera Modal */}
       {showCameraModal && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4" style={{zIndex: 1000}}>
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+        <div className="fixed inset-0 bg-gray-100 bg-opacity-75 flex items-center justify-center z-50 p-4" style={{zIndex: 1000}}>
+          <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
             <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Câmera</h3>
             {cameraError && <p className="text-red-500 text-sm mb-2">{cameraError}</p>}
             <video ref={videoRef} autoPlay playsInline className="w-full h-auto bg-gray-200 rounded mb-4 aspect-video"></video>
@@ -817,7 +870,7 @@ const ReportForm = () => {
       )}
       {/* Hidden canvas for capturing */}
       <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
-    </>
+    </div>
   );
 };
 

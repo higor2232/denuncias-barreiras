@@ -46,7 +46,7 @@ const ReportMap: React.FC<ReportMapProps> = ({
       center={center} 
       zoom={zoom} 
       scrollWheelZoom={true} 
-      style={{ height: '600px', width: '100%' }}
+      style={{ height: '420px', width: '100%' }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

@@ -1,6 +1,12 @@
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+  const [trackCode, setTrackCode] = useState("");
   const features = [
     {
       icon: (
@@ -83,6 +89,33 @@ export default function Home() {
               </svg>
               Ver Mapa
             </Link>
+          </div>
+          {/* Bloco para acompanhar denúncia pelo código diretamente da home */}
+          <div className="mt-8 max-w-xl mx-auto bg-white/95 text-gray-900 rounded-2xl shadow-lg border border-green-100 p-4 text-left">
+            <h2 className="text-sm font-semibold text-gray-800 mb-1">Já fez uma denúncia?</h2>
+            <p className="text-xs text-gray-600 mb-3">
+              Digite o código recebido para acompanhar o status da sua denúncia.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={trackCode}
+                onChange={(e) => setTrackCode(e.target.value.trim())}
+                placeholder="Cole aqui o código da denúncia"
+                className="flex-1 px-3 py-2 rounded-md text-sm border border-gray-300 bg-white text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!trackCode) return;
+                  router.push(`/denuncia/${trackCode}`);
+                }}
+                disabled={!trackCode}
+                className="px-4 py-2 text-sm font-medium rounded-md bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+              >
+                Acompanhar denúncia
+              </button>
+            </div>
           </div>
         </div>
         {/* Decorative elements */}

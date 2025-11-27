@@ -183,9 +183,9 @@ const AdminDashboard: React.FC = () => {
     try {
       const reportRef = doc(db, 'denuncias', reportId);
       await updateDoc(reportRef, { status: newStatus });
-      setReports((prevReports): Report[] =>
-        prevReports.map((r): Report =>
-          r.id === reportId ? { ...r, status: newStatus } : r
+      setReports(prevReports =>
+        prevReports.map(r =>
+          r.id === reportId ? ({ ...r, status: newStatus } as Report) : r
         )
       );
     } catch (error) {
